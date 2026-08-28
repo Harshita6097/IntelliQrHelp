@@ -17,6 +17,8 @@ const Dashboard = () => {
 
   // Mobile menu slider state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
 
   // User profile state
   const [name, setName] = useState("");
@@ -103,9 +105,14 @@ const Dashboard = () => {
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
       try {
+        setSaving(true);
         await updateDoc(userDocRef, { [field]: value });
       } catch (error) {
         console.error(`Error updating ${field}:`, error);
+        setSaveMsg("❌ Failed to save. Try again.");
+        setTimeout(() => setSaveMsg(""), 3000);
+      } finally {
+        setSaving(false);
       }
     }
   };
@@ -133,12 +140,16 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file || !user) return;
     try {
+      setSaveMsg("Uploading photo...");
       const url = await uploadImage(file, `profilePhotos/${user.uid}`);
       setProfilePhoto(url);
       await updateUserField("profilePhoto", url);
+      setSaveMsg("✅ Photo updated!");
+      setTimeout(() => setSaveMsg(""), 3000);
     } catch (error) {
       console.error("Error uploading profile photo:", error);
-      alert("Failed to upload profile photo.");
+      setSaveMsg("❌ Failed to upload photo.");
+      setTimeout(() => setSaveMsg(""), 3000);
     }
   };
 
@@ -147,11 +158,14 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file || !user) return;
     try {
+      setSaveMsg("Uploading contact photo...");
       const url = await uploadImage(file, `contactPhotos/${user.uid}/${Date.now()}`);
       setNewContactPhoto(url);
+      setSaveMsg("");
     } catch (error) {
       console.error("Error uploading contact photo:", error);
-      alert("Failed to upload contact photo.");
+      setSaveMsg("❌ Failed to upload contact photo.");
+      setTimeout(() => setSaveMsg(""), 3000);
     }
   };
 
@@ -315,8 +329,6 @@ const Dashboard = () => {
     const newQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
       publicProfileUrl
     )}`;
-    console.log("Public Profile URL:", publicProfileUrl);
-    console.log("QR Code URL:", newQrUrl);
     setQrCodeSrc(newQrUrl);
     await updateUserField("qrCode", newQrUrl);
   };
@@ -354,7 +366,8 @@ const Dashboard = () => {
     await updateUserField("bloodGroup", newBG);
     await updateUserField("name", newName);
     await updateUserField("mobileNumber", newMobile);
-    alert("Details updated.");
+    setSaveMsg("✅ Details updated!");
+    setTimeout(() => setSaveMsg(""), 3000);
     handleGenerateQR();
   };
 
@@ -795,6 +808,18 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <style>{inlineStyles}</style>
+
+      {/* SAVE TOAST */}
+      {(saving || saveMsg) && (
+        <div style={{
+          position: "fixed", bottom: "1.5rem", right: "1.5rem",
+          background: saving ? "#333" : saveMsg.startsWith("❌") ? "#dc3545" : "#28a745",
+          color: "#fff", padding: "0.6rem 1.2rem", borderRadius: "8px",
+          fontSize: "0.9rem", zIndex: 9999, boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+        }}>
+          {saving ? "Saving..." : saveMsg}
+        </div>
+      )}
 
       {/* HEADER */}
       <header className="header">

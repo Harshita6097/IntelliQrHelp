@@ -1,8 +1,9 @@
 // src/pages/Register/Register.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import "./Register.css";
 
 const Register = () => {
@@ -15,15 +16,21 @@ const Register = () => {
     event.preventDefault();
     try {
       // Create the user with email and password
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        emailAddress,
-        passwordField
-      );
-      // Update user profile with the full name
+      const userCredential = await createUserWithEmailAndPassword(auth, emailAddress, passwordField);
       await updateProfile(userCredential.user, { displayName: fullname });
-      alert("Registration successful! Please log in.");
-      navigate("/login");
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: fullname,
+        userDescription: "",
+        bloodGroup: "",
+        mobileNumber: "",
+        allergies: [],
+        previousDiseases: [],
+        currentMeds: [],
+        emergencyContacts: [],
+        profilePhoto: "",
+        qrCode: ""
+      });
+      navigate("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
       alert(error.message);
@@ -108,15 +115,9 @@ const Register = () => {
         <div className="footer-content">
           <p>&copy; 2025 IntelliQrHelp. All rights reserved.</p>
           <ul className="footer-links">
-            <li>
-              <Link to="/about">About</Link>
-            </li>
-            <li>
-              <Link to="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <Link to="/contact">Contact Us</Link>
-            </li>
+            <li><Link to="/#about">About</Link></li>
+            <li><Link to="/#privacy">Privacy Policy</Link></li>
+            <li><Link to="/#contact">Contact Us</Link></li>
           </ul>
         </div>
       </footer>

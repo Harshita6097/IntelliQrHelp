@@ -40,7 +40,7 @@ const Home = () => {
             <button className="btn-primary" onClick={handleGetStarted}>
               Get Started
             </button>
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
               Learn More
             </button>
           </div>

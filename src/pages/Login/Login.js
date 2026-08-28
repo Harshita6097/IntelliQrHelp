@@ -72,9 +72,10 @@ const Login = () => {
               Sign in
             </button>
           </form>
-          <div className="social-login">
-            <img src="/images/google.png" alt="Login with Google" />
-            <img src="/images/apple.png" alt="Login with Apple" />
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "1rem 0" }}>
+            <hr style={{ flex: 1, border: "none", borderTop: "1px solid #ddd" }} />
+            <span style={{ color: "#aaa", fontSize: "0.8rem" }}>or</span>
+            <hr style={{ flex: 1, border: "none", borderTop: "1px solid #ddd" }} />
           </div>
           <p className="footer-text">
             New to IntelliQrHelp? Create an account now.
@@ -88,15 +89,9 @@ const Login = () => {
         <div className="footer-content">
           <p>&copy; 2025 IntelliQrHelp. All rights reserved.</p>
           <ul className="footer-links">
-            <li>
-              <Link to="/about">About</Link>
-            </li>
-            <li>
-              <Link to="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <Link to="/contact">Contact Us</Link>
-            </li>
+            <li><Link to="/#about">About</Link></li>
+            <li><Link to="/#privacy">Privacy Policy</Link></li>
+            <li><Link to="/#contact">Contact Us</Link></li>
           </ul>
         </div>
       </footer>
