@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // <-- Import Link and useNavigate
 import { signOut } from "firebase/auth";
-import { auth, db, storage } from "../../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, db } from "../../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
@@ -128,11 +127,18 @@ const Dashboard = () => {
     }
   };
 
-  // Upload an image file to Firebase Storage and return its download URL
-  const uploadImage = async (file, path) => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+  // Upload an image file to Cloudinary and return its URL
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+    const data = await res.json();
+    if (!data.secure_url) throw new Error("Cloudinary upload failed");
+    return data.secure_url;
   };
 
   // Handle Profile Image Upload (Card 4)
@@ -141,7 +147,7 @@ const Dashboard = () => {
     if (!file || !user) return;
     try {
       setSaveMsg("Uploading photo...");
-      const url = await uploadImage(file, `profilePhotos/${user.uid}`);
+      const url = await uploadImage(file);
       setProfilePhoto(url);
       await updateUserField("profilePhoto", url);
       setSaveMsg("✅ Photo updated!");
@@ -159,7 +165,7 @@ const Dashboard = () => {
     if (!file || !user) return;
     try {
       setSaveMsg("Uploading contact photo...");
-      const url = await uploadImage(file, `contactPhotos/${user.uid}/${Date.now()}`);
+      const url = await uploadImage(file);
       setNewContactPhoto(url);
       setSaveMsg("");
     } catch (error) {
@@ -954,6 +960,13 @@ const Dashboard = () => {
                 value={newContactTelegram}
                 onChange={(e) => setNewContactTelegram(e.target.value)}
               />
+              <p style={{ fontSize: "0.75rem", color: "#666", margin: "-0.3rem 0 0.4rem" }}>
+                Ask your contact to message{" "}
+                <a href="https://t.me/intelliqrhelp_sos_bot" target="_blank" rel="noreferrer">
+                  @intelliqrhelp_sos_bot
+                </a>{" "}
+                on Telegram — the bot will reply with their Chat ID.
+              </p>
               <input type="file" accept="image/*" onChange={handleContactPhotoChange} />
               <button onClick={handleSaveContact}>Save Contact</button>
             </div>
